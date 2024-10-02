@@ -11,7 +11,7 @@ from datetime import datetime
 def github_connect():
     with open('mytoken.txt') as f:
         token = f.read()
-    user = 'self-m4de'
+    user = 'mohammedhasan2'
     sess = github3.login(token=token)
     return sess.repository(user, 'bhptrojan')
 
